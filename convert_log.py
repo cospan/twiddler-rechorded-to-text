@@ -81,12 +81,12 @@ def convert_hid_to_text(input_file_path, output_file_path, debug = False):
 
             # Check if we need to move the cursor
             if data[0] == 0x2B: # Tab
-                if debug: print ("tab")
+                #if debug: print ("tab")
                 flag_control = True
                 cursor[1] += TAB_SPACES
                 
             elif data[0] == 0x2A: # Backspace
-                if debug: print ("<BACKSPACE>")
+                #if debug: print ("<BACKSPACE>")
                 flag_control = True
                 if cursor[1] == 0:
                     if cursor[0] > 0:
@@ -129,12 +129,12 @@ def convert_hid_to_text(input_file_path, output_file_path, debug = False):
             else:
                 if data[0] != 0:
                     value = HID_SHIFT_KEYS[data[0]] if flag_shift else HID_KEYS[data[0]]
-                    if debug: print (value, end = '')
+                    #if debug: print (value, end = '')
 
                     while len(data_buffer) <= cursor[0]:
                         data_buffer.append([])
                     while len(data_buffer[cursor[0]]) <= cursor[1]:
-                        data_buffer[cursor[0]].append(' ')
+                        data_buffer[cursor[0]].append(None)
                     data_buffer[cursor[0]][cursor[1]]
 
 
@@ -147,17 +147,23 @@ def convert_hid_to_text(input_file_path, output_file_path, debug = False):
 
 
 
-    #if debug:
-    #    print ("Buffer: %s" % str(data_buffer))
-            
-            
     with open(output_file_path, 'w') as output_file:
         # Read in 4 bytes from the input
         for b in data_buffer:
             s = ""
             for d in b:
-                s += d
+                if d is None:
+                    continue
+
+                if debug: print (d, end = '')
+                try:
+                    s += d
+                except TypeError as e:
+                    if debug:
+                        print ("Warning: Found %s" % str(e))
+                        print ("Ignoring and Continuing...")
             output_file.write(s)
+	
         #cursor = [0, 0]
 
         #while cursor[0] < len(buffer[0]) and cursor[1] < len(buffer[cursor[0]][cursor[1]]):
